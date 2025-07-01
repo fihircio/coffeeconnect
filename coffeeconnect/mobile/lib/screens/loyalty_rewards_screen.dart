@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class LoyaltyRewardsScreen extends StatelessWidget {
   final int points = 320;
@@ -10,6 +12,9 @@ class LoyaltyRewardsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    final loyaltyRules = merchantConfig?.loyaltyRules;
+
     return Scaffold(
       appBar: AppBar(title: Text('Loyalty & Rewards')),
       body: SingleChildScrollView(

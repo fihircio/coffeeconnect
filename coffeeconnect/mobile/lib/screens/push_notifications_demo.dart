@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class PushNotificationsDemo extends StatelessWidget {
   void _showNotification(BuildContext context, String message) {
@@ -9,8 +11,25 @@ class PushNotificationsDemo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    if (merchantConfig == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
-      appBar: AppBar(title: Text('Push Notifications Demo')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: NetworkImage(merchantConfig.logoUrl),
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(width: 12),
+            Text(merchantConfig.merchantName),
+          ],
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
+import '../models/merchant_config.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController _phoneController = TextEditingController();
@@ -52,13 +55,17 @@ class LoginScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                onPressed: () {
-                  // TODO: Implement OTP logic
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('OTP sent (mock)')),
+                onPressed: () async {
+                  // Simulate login and merchant_id fetch
+                  final merchantId = 'demo_merchant_1';
+                  // Simulate fetching merchant config from backend
+                  final merchantConfig = await fetchMerchantConfig(merchantId);
+                  Provider.of<MerchantProvider>(context, listen: false).setMerchantConfig(merchantConfig);
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => CoffeeConnectApp()),
                   );
                 },
-                child: const Text('Send OTP', style: TextStyle(fontSize: 18)),
+                child: const Text('Login'),
               ),
             ),
             const SizedBox(height: 16),
@@ -94,6 +101,26 @@ class LoginScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<MerchantConfig> fetchMerchantConfig(String merchantId) async {
+    // TODO: Replace with real API call
+    await Future.delayed(Duration(seconds: 1));
+    return MerchantConfig(
+      merchantId: merchantId,
+      merchantName: 'Demo Coffee',
+      logoUrl: 'https://placehold.co/100x100',
+      primaryColor: Color(0xFF6F4E37),
+      secondaryColor: Color(0xFFFFA15F),
+      menu: [
+        MenuCategory(name: 'Coffee', items: [
+          MenuItem(name: 'Iced Latte', imageUrl: 'https://placehold.co/48x48', price: 12.0, modifiers: ['Regular', 'Large']),
+        ]),
+      ],
+      loyaltyRules: LoyaltyRules(type: 'points', pointsPerCurrency: 1.0, stampsRequired: 0),
+      paymentConfig: PaymentConfig(gateway: 'stripe', publicKey: 'pk_test', secretKey: 'sk_test'),
+      subscriptionTier: 'Pro',
     );
   }
 } 

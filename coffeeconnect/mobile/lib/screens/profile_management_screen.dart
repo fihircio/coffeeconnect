@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'order_history_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class ProfileManagementScreen extends StatefulWidget {
   @override
@@ -24,6 +26,17 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Loyalty Status: Gold', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF6F4E37))),
+              Consumer<MerchantProvider>(
+                builder: (context, merchantProvider, _) {
+                  final tier = merchantProvider.merchantConfig?.subscriptionTier;
+                  return tier != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text('Merchant Tier: $tier', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+                        )
+                      : SizedBox.shrink();
+                },
+              ),
               const SizedBox(height: 24),
               TextFormField(
                 initialValue: name,

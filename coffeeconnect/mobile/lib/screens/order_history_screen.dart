@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class OrderHistoryScreen extends StatelessWidget {
   final List<Map<String, dynamic>> orders = [
@@ -16,8 +18,25 @@ class OrderHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    if (merchantConfig == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
-      appBar: AppBar(title: Text('Order History')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: NetworkImage(merchantConfig.logoUrl),
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(width: 12),
+            Text(merchantConfig.merchantName),
+          ],
+        ),
+      ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
@@ -32,7 +51,7 @@ class OrderHistoryScreen extends StatelessWidget {
               trailing: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('RM${order['total']}', style: TextStyle(color: Color(0xFF6F4E37), fontWeight: FontWeight.bold)),
+                  Text('RM${order['total']}', style: TextStyle(color: merchantConfig.primaryColor, fontWeight: FontWeight.bold)),
                   TextButton(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(

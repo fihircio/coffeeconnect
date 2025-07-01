@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class OrderStatusTrackingScreen extends StatefulWidget {
   @override
@@ -31,8 +33,25 @@ class _OrderStatusTrackingScreenState extends State<OrderStatusTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    if (merchantConfig == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
-      appBar: AppBar(title: Text('Order Status')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: NetworkImage(merchantConfig.logoUrl),
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(width: 12),
+            Text(merchantConfig.merchantName),
+          ],
+        ),
+      ),
       body: Stepper(
         currentStep: _currentStep,
         steps: _steps.map((step) => Step(title: Text(step), content: SizedBox.shrink())).toList(),

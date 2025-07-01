@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shimmer/shimmer.dart';
 import '../widgets/coffee_card.dart';
 import 'customize_menu_item_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class MenuScreen extends StatefulWidget {
   @override
@@ -10,11 +12,11 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  bool isLoading = true;
+  TabController? _tabController;
+  List<String> _currentCategories = [];
 
-  final List<String> categories = ['Coffee', 'Tea', 'Snacks'];
-  final Map<String, List<Map<String, String>>> menuItems = {
+  final List<String> staticCategories = ['Coffee', 'Tea', 'Snacks'];
+  final Map<String, List<Map<String, String>>> staticMenuItems = {
     'Coffee': [
       {'name': 'Iced Latte', 'price': 'RM12', 'image': 'lib/assets/images/placeholder_logo.png'},
       {'name': 'Espresso', 'price': 'RM8', 'image': 'lib/assets/images/placeholder_logo.png'},
@@ -32,19 +34,29 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: categories.length, vsync: this);
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    });
+    _currentCategories = staticCategories;
+    _tabController = TabController(length: _currentCategories.length, vsync: this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    final dynamicMenu = merchantConfig?.menu;
+    final newCategories = dynamicMenu != null && dynamicMenu.isNotEmpty
+        ? dynamicMenu.map((cat) => cat.name).toList()
+        : staticCategories;
+    if (_currentCategories.length != newCategories.length || !_currentCategories.asMap().entries.every((e) => e.value == newCategories[e.key])) {
+      _currentCategories = newCategories;
+      _tabController?.dispose();
+      _tabController = TabController(length: _currentCategories.length, vsync: this);
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -101,52 +113,59 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    final dynamicMenu = merchantConfig?.menu;
+    final categories = _currentCategories;
+    final menuItems = dynamicMenu != null && dynamicMenu.isNotEmpty
+        ? {for (var cat in dynamicMenu) cat.name: cat.items.map((item) => {
+            'name': item.name,
+            'price': 'RM${item.price}',
+            'image': item.imageUrl,
+          }).toList()}
+        : staticMenuItems;
     return Scaffold(
       appBar: AppBar(
         title: Text('Menu'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: categories.map((cat) => Tab(text: cat)).toList(),
-          indicatorColor: Color(0xFF6F4E37),
-          labelColor: Color(0xFF6F4E37),
-          unselectedLabelColor: Color(0xFFB2BFA3),
-        ),
+        bottom: _tabController == null
+            ? null
+            : TabBar(
+                controller: _tabController,
+                tabs: categories.map((cat) => Tab(text: cat)).toList(),
+                indicatorColor: Color(0xFF6F4E37),
+                labelColor: Color(0xFF6F4E37),
+                unselectedLabelColor: Color(0xFFB2BFA3),
+              ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: categories.map((cat) {
-          if (isLoading) {
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 3,
-              itemBuilder: (context, index) => _buildShimmerCard(),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: menuItems[cat]!.length,
-            itemBuilder: (context, index) {
-              final item = menuItems[cat]![index];
-              return CoffeeCard(
-                imagePath: item['image']!,
-                name: item['name']!,
-                price: item['price']!,
-                onCustomize: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => CustomizeMenuItemScreen(
-                        imagePath: item['image']!,
-                        name: item['name']!,
-                        price: item['price']!,
-                      ),
-                    ),
-                  );
-                },
-              ).animate().fadeIn(duration: 400.ms, delay: (index * 100).ms);
-            },
-          );
-        }).toList(),
-      ),
+      body: _tabController == null
+          ? Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: categories.map((cat) {
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: menuItems[cat]!.length,
+                  itemBuilder: (context, index) {
+                    final item = menuItems[cat]![index];
+                    return CoffeeCard(
+                      imagePath: item['image']!,
+                      name: item['name']!,
+                      price: item['price']!,
+                      onCustomize: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CustomizeMenuItemScreen(
+                              imagePath: item['image']!,
+                              name: item['name']!,
+                              price: item['price']!,
+                            ),
+                          ),
+                        );
+                      },
+                    ).animate().fadeIn(duration: 400.ms, delay: (index * 100).ms);
+                  },
+                );
+              }).toList(),
+            ),
     );
   }
 } 

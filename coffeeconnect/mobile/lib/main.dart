@@ -14,12 +14,14 @@ import 'screens/order_history_screen.dart';
 import 'screens/loyalty_rewards_screen.dart';
 import 'screens/push_notifications_demo.dart';
 import 'screens/profile_management_screen.dart';
+import 'providers/merchant_provider.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => MerchantProvider()),
       ],
       child: CoffeeConnectApp(),
     ),
@@ -29,9 +31,21 @@ void main() {
 class CoffeeConnectApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    final theme = merchantConfig != null
+        ? AppTheme.lightTheme.copyWith(
+            primaryColor: merchantConfig.primaryColor,
+            colorScheme: ColorScheme.light(
+              primary: merchantConfig.primaryColor,
+              secondary: merchantConfig.secondaryColor,
+              background: AppTheme.lightTheme.scaffoldBackgroundColor,
+              surface: AppTheme.lightTheme.colorScheme.surface,
+            ),
+          )
+        : AppTheme.lightTheme;
     return MaterialApp(
-      title: 'CoffeeConnect',
-      theme: AppTheme.lightTheme,
+      title: merchantConfig?.merchantName ?? 'CoffeeConnect',
+      theme: theme,
       home: SplashScreen(), // Start with SplashScreen
     );
   }

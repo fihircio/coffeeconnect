@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
   @override
@@ -48,7 +50,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
-                          'lib/assets/images/placeholder_logo.png',
+                          Provider.of<MerchantProvider>(context).merchantConfig?.logoUrl != null
+                              ? Provider.of<MerchantProvider>(context).merchantConfig!.logoUrl
+                              : 'lib/assets/images/placeholder_logo.png',
                           width: 80,
                           height: 80,
                           fit: BoxFit.cover,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/merchant_provider.dart';
 
 class CartScreen extends StatelessWidget {
   @override
@@ -22,77 +23,85 @@ class CartScreen extends StatelessWidget {
                     leading: Image.asset(item.imagePath, width: 48, height: 48, fit: BoxFit.cover),
                     title: Text(item.name, style: TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(item.options),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('RM${item.price}', style: TextStyle(color: Color(0xFF6F4E37), fontWeight: FontWeight.bold)),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                    trailing: SizedBox(
+                      height: 48,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.remove),
-                              onPressed: item.qty > 1
-                                  ? () => cart.updateQty(item, item.qty - 1)
-                                  : null,
+                            Text('RM${item.price}', style: TextStyle(color: Color(0xFF6F4E37), fontWeight: FontWeight.bold)),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.remove),
+                                  onPressed: item.qty > 1
+                                      ? () => cart.updateQty(item, item.qty - 1)
+                                      : null,
+                                ),
+                                Text('${item.qty}', style: TextStyle(fontSize: 16)),
+                                IconButton(
+                                  icon: Icon(Icons.add),
+                                  onPressed: () => cart.updateQty(item, item.qty + 1),
+                                ),
+                              ],
                             ),
-                            Text('${item.qty}', style: TextStyle(fontSize: 16)),
                             IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: () => cart.updateQty(item, item.qty + 1),
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                cart.removeItem(item);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Item removed from cart.')),
+                                );
+                              },
                             ),
                           ],
                         ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            cart.removeItem(item);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Item removed from cart.')),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('RM${cart.total.toStringAsFixed(2)}', style: TextStyle(fontSize: 18, color: Color(0xFF6F4E37), fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF6F4E37),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: cart.items.isEmpty
-                    ? null
-                    : () {
-                        // TODO: Checkout logic
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Checkout coming soon!')),
-                        );
-                      },
-                child: const Text('Checkout', style: TextStyle(fontSize: 18)),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text('RM${cart.total.toStringAsFixed(2)}', style: TextStyle(fontSize: 18, color: Color(0xFF6F4E37), fontWeight: FontWeight.bold)),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF6F4E37),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: cart.items.isEmpty
+                      ? null
+                      : () {
+                          final paymentConfig = Provider.of<MerchantProvider>(context, listen: false).merchantConfig?.paymentConfig;
+                          // TODO: Use paymentConfig for payment processing
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Checkout coming soon!')),
+                          );
+                        },
+                  child: const Text('Checkout', style: TextStyle(fontSize: 18)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

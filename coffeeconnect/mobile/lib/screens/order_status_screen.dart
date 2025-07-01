@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:provider/provider.dart';
+import '../providers/merchant_provider.dart';
 
 class OrderStatusScreen extends StatefulWidget {
   @override
@@ -94,8 +96,25 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final merchantConfig = Provider.of<MerchantProvider>(context).merchantConfig;
+    if (merchantConfig == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
-      appBar: AppBar(title: Text('Orders')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: NetworkImage(merchantConfig.logoUrl),
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(width: 12),
+            Text(merchantConfig.merchantName),
+          ],
+        ),
+      ),
       body: isLoading
           ? ListView.builder(
               padding: const EdgeInsets.all(16),
